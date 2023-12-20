@@ -158,7 +158,7 @@ abstract class Stream implements StreamInterface
                     //重新投递
                     $res = $client->XCLAIM($this->stream, $this->group, $consumer, 3000, [$id]);
                     //失败次数超过限制值抛弃消息不再投递
-                    if ($deliveryCount > $this->deliveryFailCount){
+                    if ($deliveryCount >= $this->deliveryFailCount){
                         //失败推送失败队列
                         if (!empty($res)){
                             $client->xAdd($this->failStream,'*', current($res));
