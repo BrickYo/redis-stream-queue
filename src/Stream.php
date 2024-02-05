@@ -40,6 +40,12 @@ abstract class Stream implements StreamInterface
     protected int $deliveryFailCount = 5;
 
     /**
+     * 检查无消息后会暂停拉取的时间
+     * @var int
+     */
+    protected int $brock = 10;
+
+    /**
      * 队列业务名
      * @var string
      */
@@ -127,7 +133,7 @@ abstract class Stream implements StreamInterface
 
         $this->_timer['consumer'] = Timer::add($interval, function () use ($client , $interval , $consumer){
             //读取未ack的消息
-            while($res = $client->xReadGroup($this->group, $consumer, [$this->stream => '>'], $this->prefetchCount, (int)($interval * 1000)))
+            while($res = $client->xReadGroup($this->group, $consumer, [$this->stream => '>'], $this->prefetchCount, $this->brock))
             {
                 $list = current($res);
                 // 信息组
