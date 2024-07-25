@@ -1,7 +1,7 @@
 {
   "name": "horizon/redis-stream-queue",
   "description": "Redis message stream queue plugin for webman.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "MIT",
   "require": {
     "php": ">=8.1",

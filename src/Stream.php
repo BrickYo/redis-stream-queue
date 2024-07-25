@@ -82,6 +82,8 @@ abstract class Stream implements StreamInterface
 
     protected static array $_consumers = [];
 
+    protected bool $failConsumerLog = false;
+
     public function __construct()
     {
         $this->_connection = Redis::connection($this->connection);
@@ -145,6 +147,8 @@ abstract class Stream implements StreamInterface
                             $client->xAck($this->stream, $this->group, [$id]);
                             //删除ack的消息
                             $client->xDel($this->stream,[$id]);
+                        }elseif($this->failConsumerLog){
+                            Log::channel('stream')->warning($this->stream.'-'.$id.'-'.gethostname(), ['data' => $data]);
                         }
                     }catch (\Throwable $throwable){
                         Log::channel('stream')->error($throwable->getMessage(), ['data' => $data,'trace' => $throwable->getTrace()]);
@@ -178,8 +182,16 @@ abstract class Stream implements StreamInterface
                                 $client->xAck($this->stream, $this->group, [$id]);
                                 //删除ack的消息
                                 $client->xDel($this->stream,[$id]);
+                            }elseif($this->failConsumerLog){
+                                Log::channel('stream')->error($this->stream.'-'.$id.'-'.gethostname(), [
+                                    'data' => current($res),
+                                    'elapsedTime' => $elapsedTime,
+                                    'deliveryCount' => $deliveryCount
+                                ]);
                             }
-                        }catch (\Throwable $throwable){}
+                        }catch (\Throwable $throwable){
+                            Log::channel('stream')->error($throwable->getMessage(), ['data' => current($res),'trace' => $throwable->getTrace()]);
+                        }
                     }
                 }
             }
